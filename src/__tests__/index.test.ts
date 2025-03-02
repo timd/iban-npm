@@ -1,8 +1,9 @@
+import {sum} from '../index'
+describe('testing a function', () => {
 
-describe('modifying an array', () => {
-
-  it('should return an array', () => {
-    
+  it('should return 3 when passed 1 & 2', () => {
+    const result = sum(1,2)
+    expect(result).toEqual(3) 
   })
 
 
