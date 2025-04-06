@@ -1,6 +1,6 @@
 {
-  "name": "leetcode",
-  "version": "1.0.0",
+  "name": "iban_validator",
+  "version": "0.0.1",
   "main": "index.js",
   "scripts": {
     "start": "ts-node src/index.ts",
@@ -11,8 +11,8 @@
     "test:coverage": "jest --coverage"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "Tim Duckett",
+  "license": "MIT",
   "description": "",
   "devDependencies": {
     "@types/jest": "^29.5.14",
