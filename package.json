@@ -10,10 +10,10 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage"
   },
-  "keywords": [],
+  "keywords": ["iban", "IBAN", "validation", "bank account", "typescript"],
   "author": "Tim Duckett",
   "license": "MIT",
-  "description": "",
+  "description": "A lightweight, comprehensive TypeScript library for validating International Bank Account Numbers (IBANs) with detailed error reporting.",
   "devDependencies": {
     "@types/jest": "^29.5.14",
     "@types/node": "^22.13.5",
