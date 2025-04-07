@@ -1,6 +1,6 @@
-// IBANChecksumTests.ts
-
-import { rearrange, replaceAlphaChars, calculateChecksum } from '../ibanValidator';
+import { rearrange, 
+         calculateChecksum,
+         replaceAlphaChars,  } from '../ibanValidator';
 
 describe('IBAN Checksum Tests', () => {
   

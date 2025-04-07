@@ -1,6 +1,5 @@
-// CompleteTests.ts
-
-import { validateIBAN, IBANValidationError } from '../ibanValidator';
+import { checkLength, validateIBAN } from '../ibanValidator'
+import { IBANValidationError } from '../types';
 
 describe('The consolidated process', () => {
   
@@ -25,6 +24,13 @@ describe('The consolidated process', () => {
   
   it('should return invalid length where an IBAN is longer than 34 chars', () => {
     const ibanUnderTest = "DE34567890123456789012345678901234567890";
+    expect(() => {
+      validateIBAN(ibanUnderTest);
+    }).toThrow(IBANValidationError.InvalidLength);
+  });
+
+  it('should return invalid length where an IBAN is too short for a country', () => {
+    const ibanUnderTest = "DE34567890"; // should be 32
     expect(() => {
       validateIBAN(ibanUnderTest);
     }).toThrow(IBANValidationError.InvalidLength);
@@ -80,7 +86,7 @@ describe('The consolidated process', () => {
     ibans.forEach(iban => {
       expect(() => {
         validateIBAN(iban);
-      }).not.toThrow();
+      }).toBeTruthy;
     });
   });
 });

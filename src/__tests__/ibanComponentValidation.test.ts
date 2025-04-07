@@ -1,15 +1,16 @@
 import { cleanIBAN, 
-         checkInvalidChars,
-         checkStartOfIBAN,
+         checkLength,
          checkCheckDigits,
          checkCountryCode,
-         checkLength } from '../ibanValidator';
+         checkStartOfIBAN,
+         checkInvalidChars } from '../ibanValidator';
 
-import { IBANValidationError } from '../ibanValidator';
+import { IBANValidationError } from '../types';
 
 describe('when coarse formatting', () => {
 
     describe('non-valid characters', () => {
+
         it('should clean out spaces', () => {
             const ibanUnderTest = "DE12 3456 7890 1234 5678 90"
             const cleanedIban = "DE12345678901234567890"
@@ -57,7 +58,19 @@ describe('when coarse formatting', () => {
             expect(result).toBe(false)
         })
 
-        it('should reject an IBAN that starts with non-alpha characters', () => {
+        it('should reject an IBAN that starts with a single uppercase letter', () => {
+            const ibanUnderTest = "A12345678901234567890"
+            const result = checkStartOfIBAN(ibanUnderTest)
+            expect(result).toBe(false)
+        })
+
+        it('should reject an IBAN that starts with a non-alpha characters', () => {
+            const ibanUnderTest = "🐶E12345678901234567890"
+            const result = checkStartOfIBAN(ibanUnderTest)
+            expect(result).toBe(false)
+        })
+
+        it('should reject an IBAN that starts with multiple non-alpha characters', () => {
             const ibanUnderTest = "🐶🐔12345678901234567890"
             const result = checkStartOfIBAN(ibanUnderTest)
             expect(result).toBe(false)
@@ -86,6 +99,7 @@ describe('when coarse formatting', () => {
             const result = checkCountryCode(ibanUnderTest)
             expect(result).toBe(false)
         })
+        
         it('should pass an IBAN with a valid country code', () => {
             const ibanUnderTest = "DE11345678901234567890"
             const result = checkCountryCode(ibanUnderTest)
@@ -103,14 +117,9 @@ describe('when coarse formatting', () => {
 
         it('should reject an IBAN has more than 34 characters', () => {
             const ibanUnderTest = "DE123456789012345678901234567890";
-            try {
-              checkLength(ibanUnderTest);
-              fail('Expected an error to be thrown for an IBAN that is too long');
-            } catch (error) {
-              expect(error instanceof Error).toBe(true);
-              expect((error as Error).message).toBe(IBANValidationError.InvalidLength);
-            }
-          });
+            const result = checkLength(ibanUnderTest);
+            expect(result).toBeFalsy
+        });
 
         it('should reject an IBAN that is too long for the country length', () => {
             const testCases = [
@@ -121,9 +130,8 @@ describe('when coarse formatting', () => {
             ];
       
             testCases.forEach(({ country: _, iban }) => {
-                expect(() => {
-                checkLength(iban);
-                }).toThrow(IBANValidationError.InvalidLength);
+                const result = checkLength(iban);
+                expect(result).toBeFalsy;
             });
         });
 
@@ -140,6 +148,12 @@ describe('when coarse formatting', () => {
                 expect(result).toBe(true);
             });
         
+        });
+
+        it('should return invalid country code when checking length with an invalid country', () => {
+            const ibanUnderTest = "XX34567890"; // should be 32
+            const result = checkLength(ibanUnderTest)
+            expect(result).toBeFalsy;
         });
         
     })

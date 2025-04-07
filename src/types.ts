@@ -1,5 +1,18 @@
-// countries.ts
-export interface CountryData {
+// Error types enum
+export enum IBANValidationError {
+    InvalidChecksum = "Invalid checksum",
+    InvalidCountryCode = "Invalid country code",
+    InvalidLength = "Invalid length",
+    InvalidCharacters = "Invalid characters",
+    UnknownError = "Unknown error"
+}
+
+export type ResultType<IBANValidationError> =
+| { success: true; error?: never }
+| { success: false; error: IBANValidationError };
+  
+  // Country codes with their IBAN lengths
+  export interface CountryData {
     name: string;
     ibanLength: number;
   }
@@ -74,4 +87,12 @@ export interface CountryData {
     "AE": { name: "United Arab Emirates", ibanLength: 23 },
     "GB": { name: "United Kingdom", ibanLength: 22 },
     "VG": { name: "Virgin Islands, British", ibanLength: 24 }
+  };
+  
+  // Letter to number mapping for IBAN
+  export const letters: Record<string, number> = {
+    "A": 10, "B": 11, "C": 12, "D": 13, "E": 14, "F": 15, "G": 16, "H": 17,
+    "I": 18, "J": 19, "K": 20, "L": 21, "M": 22, "N": 23, "O": 24, "P": 25,
+    "Q": 26, "R": 27, "S": 28, "T": 29, "U": 30, "V": 31, "W": 32, "X": 33,
+    "Y": 34, "Z": 35
   };
