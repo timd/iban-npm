@@ -1,42 +1,44 @@
-import { validateIBAN, validateIBANWithResult } from '../ibanValidator'
 import { IBANValidationError } from '../types';
+import { checkCountryCode, isValidWithResult } from '../ibanValidator'
 
 describe('The consolidated process', () => {
   
   it('should return true for a valid IBAN', () => {
     const ibanUnderTest = "NL11ABNA0481433284";
-    expect(validateIBANWithResult(ibanUnderTest).success).toBe(true);
-    expect(validateIBANWithResult(ibanUnderTest).error).toBe(undefined);
+    expect(isValidWithResult(ibanUnderTest).success).toBe(true);
+    expect(isValidWithResult(ibanUnderTest).error).toBe(undefined);
   });
   
   it('should return invalid checksum for an invalid IBAN', () => {
     const ibanUnderTest = "NL33ABNA0481433284";
-    expect(validateIBANWithResult(ibanUnderTest).success).toBe(false);
-    expect(validateIBANWithResult(ibanUnderTest).error).toBe(IBANValidationError.InvalidChecksum);
+    expect(isValidWithResult(ibanUnderTest).success).toBe(false);
+    expect(isValidWithResult(ibanUnderTest).error).toBe(IBANValidationError.InvalidChecksum);
   });
   
   it('should return invalid countrycode for an invalid IBAN', () => {
-    const ibanUnderTest = "XY33ABNA0481433284";
-    expect(validateIBANWithResult(ibanUnderTest).success).toBe(false);
-    expect(validateIBANWithResult(ibanUnderTest).error).toBe(IBANValidationError.InvalidCountryCode);
+    const ibanUnderTest = "QQ33ABNA0481433284";
+    const result = isValidWithResult(ibanUnderTest);
+
+    expect(result.success).toBe(false);
+    expect(isValidWithResult(ibanUnderTest).error).toBe(IBANValidationError.InvalidCountryCode);
   });
   
   it('should return invalid length where an IBAN is longer than 34 chars', () => {
     const ibanUnderTest = "DE34567890123456789012345678901234567890";
-    expect(validateIBANWithResult(ibanUnderTest).success).toBe(false);
-    expect(validateIBANWithResult(ibanUnderTest).error).toBe(IBANValidationError.InvalidLength);
+    expect(isValidWithResult(ibanUnderTest).success).toBe(false);
+    expect(isValidWithResult(ibanUnderTest).error).toBe(IBANValidationError.InvalidLength);
   });
   
   it('should return invalid characters for an invalid IBAN', () => {
     const ibanUnderTest = "NL11ABNA048143328*";
-    expect(validateIBANWithResult(ibanUnderTest).success).toBe(false);
-    expect(validateIBANWithResult(ibanUnderTest).error).toBe(IBANValidationError.InvalidCharacters);
+    expect(isValidWithResult(ibanUnderTest).success).toBe(false);
+    expect(isValidWithResult(ibanUnderTest).error).toBe(IBANValidationError.InvalidCharacters);
   });
   
   it('should return invalid characters for an really invalid IBAN', () => {
     const ibanUnderTest = "NL11ABNA04814332🐶🐷";
-    expect(validateIBANWithResult(ibanUnderTest).success).toBe(false);
-    expect(validateIBANWithResult(ibanUnderTest).error).toBe(IBANValidationError.InvalidCharacters);
+    expect(isValidWithResult(ibanUnderTest).success).toBe(false);
+    expect(isValidWithResult(ibanUnderTest).error).toBe(IBANValidationError.InvalidCharacters);
   });
   
   it('should return true for valid IBAN series', () => {
@@ -73,8 +75,8 @@ describe('The consolidated process', () => {
     ];
     
     ibans.forEach(ibanUnderTest => {
-        expect(validateIBANWithResult(ibanUnderTest).success).toBe(true);
-        expect(validateIBANWithResult(ibanUnderTest).error).toBe(undefined);
+        expect(isValidWithResult(ibanUnderTest).success).toBe(true);
+        expect(isValidWithResult(ibanUnderTest).error).toBe(undefined);
     });
   });
 });

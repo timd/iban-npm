@@ -8,24 +8,24 @@ import { IBANValidationError,
 /**
 * IBAN Validator - basic function
 * @param iban The IBAN to validate
-* @returns True if valid, throws error otherwise
+* @returns True if valid, false if invalid
 */
 
-export function validateIBAN(iban: string): boolean {
+export function isValid(iban: string): boolean {
 
   // Check invalid chars
-  if (!checkInvalidChars(iban)) {
-    throw new Error(IBANValidationError.InvalidCharacters);
+  if (!checkInvalidChars(iban).success) {
+    return false;
   }
 
   // Check country code
-  if (!checkCountryCode(iban)) {
-    throw new Error(IBANValidationError.InvalidCountryCode);
+  if (!checkCountryCode(iban).success) {
+    return false;
   }
 
   // Check length
-  if(!checkLength(iban)) {
-    throw new Error(IBANValidationError.InvalidLength);
+  if(!checkLength(iban).success) {
+    return false;
   }
 
   // Clean IBAN
@@ -46,7 +46,7 @@ export function validateIBAN(iban: string): boolean {
 
   // Test that checksums match
   if (calculatedChecksum !== existingChecksum) {
-    throw new Error(IBANValidationError.InvalidChecksum);
+    return false;
   }
 
   return true;
@@ -60,17 +60,49 @@ export function validateIBAN(iban: string): boolean {
  *   - value: true if validation passed, false if validation failed
  *   - error: The specific IBANValidationError if validation failed (only present when success is false)
  */
-export function validateIBANWithResult(iban: string): ResultType<IBANValidationError> {
-  try {
-    validateIBAN(iban);
-    return { success: true };
-  } catch (error: any) {
-    if (error instanceof Error) {
-      const message = error.message as IBANValidationError;
-      return { success: false, error: message };
-    }
-    return { success: false, error: IBANValidationError.UnknownError };
+export function isValidWithResult(iban: string): ResultType<IBANValidationError> {
+
+  // Check invalid chars
+  const checkInvalidCharsResult = checkInvalidChars(iban);
+  if (checkInvalidCharsResult.success != true) {
+    return checkInvalidCharsResult;
+  } 
+  
+  // Check country code
+  const checkCountryCodeResult = checkCountryCode(iban);
+  if (checkCountryCodeResult.success != true) {
+    return checkCountryCodeResult;
+  } 
+
+  // Check length
+  const checkLengthResult = checkLength(iban);
+  if (checkLengthResult.success != true) {
+    return checkLengthResult;
   }
+  
+  // Clean IBAN
+  const cleanedIban = cleanIBAN(iban);
+
+  // Isolate existing checksum
+  const startChars = cleanedIban.substring(0, 4);
+  const existingChecksum = startChars.substring(2, 4);
+
+  // Rearrange
+  const rearrangedIban = rearrange(cleanedIban);
+
+  // Replace alpha chars
+  const nonAlphaIban = replaceAlphaChars(rearrangedIban);
+
+  // Calculate checksum
+  const calculatedChecksum = calculateChecksum(nonAlphaIban);
+
+  // Test that checksums match
+  if (calculatedChecksum !== existingChecksum) {
+    return { success: false, error: IBANValidationError.InvalidChecksum };
+  }
+
+  return { success: true };
+
 }
 
 /** UTILITY FUNCTIONS **/
@@ -78,9 +110,15 @@ export function validateIBANWithResult(iban: string): ResultType<IBANValidationE
 /**
  * Checks that the IBAN contains only alphanumeric characters
  */
-export function checkInvalidChars(iban: string): boolean {
+export function checkInvalidChars(iban: string): ResultType<IBANValidationError> {
   const alphanumericRegex = /^[a-zA-Z0-9]+$/;
-  return alphanumericRegex.test(iban);
+  
+  if (alphanumericRegex.test(iban)) {
+    return { success: true };
+  }
+  
+  return { success: false, error: IBANValidationError.InvalidCharacters };
+  
 }
 
 /**
@@ -93,38 +131,52 @@ export function cleanIBAN(iban: string): string {
 /**
  * Checks that the IBAN starts with two uppercase letters
  */
-export function checkStartOfIBAN(iban: string): boolean {
+export function checkStartOfIBAN(iban: string): ResultType<IBANValidationError> {
   const startChars = iban.substring(0, 2).toUpperCase();
   const alphabeticRegex = /^[A-Z]{2}$/;
   
-  return alphabeticRegex.test(startChars);
+  if (alphabeticRegex.test(startChars)) {
+    return { success: true };
+  };
+
+  return { success: false, error: IBANValidationError.InvalidCountryCode };
+
 }
 
 /**
  * Checks that the check digits (positions 3-4) contain at least one digit
  */
-export function checkCheckDigits(iban: string): boolean {
+export function checkCheckDigits(iban: string): ResultType<IBANValidationError> {
   const checkDigits = iban.substring(2, 4);
   const digitRegex = /[0-9]/;
   
-  return digitRegex.test(checkDigits);
+  if (digitRegex.test(checkDigits)) {
+    return { success: true };
+  };
+
+  return { success: false, error: IBANValidationError.InvalidChecksum };
+
 }
 
 /**
  * Checks that the country code is valid
  */
-export function checkCountryCode(iban: string): boolean {
+export function checkCountryCode(iban: string): ResultType<IBANValidationError> {
   const countryCode = iban.substring(0, 2).toUpperCase();
-  return countries[countryCode] !== undefined;
+  if (countries[countryCode] !== undefined) {
+    return { success: true };
+  };
+
+  return { success: false, error: IBANValidationError.InvalidCountryCode };
+
 }
 
 /**
  * Checks that the length is valid for the country
  */
-export function checkLength(iban: string): boolean {
+export function checkLength(iban: string): ResultType<IBANValidationError> {
   if (iban.length > 34) {
-    return false
-    //throw new Error(IBANValidationError.InvalidLength);
+    return { success: false, error: IBANValidationError.InvalidLength };
   }
   
   // Get country code
@@ -132,14 +184,12 @@ export function checkLength(iban: string): boolean {
   
   if (countries[countryCode]) {
     if (iban.length === countries[countryCode].ibanLength) {
-      return true;
+      return { success: true };;
     } else {
-      return false
-      //throw new Error(IBANValidationError.InvalidLength);
+      return { success: false, error: IBANValidationError.InvalidLength };
     }
   } else {
-    return false
-    //throw new Error(IBANValidationError.InvalidCountryCode);
+    return { success: false, error: IBANValidationError.UnknownError };
   }
 }
 
