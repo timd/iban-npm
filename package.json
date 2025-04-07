@@ -1,5 +1,5 @@
 {
-  "name": "iban-validator", 
+  "name": "iban-ts-validator", 
   "version": "1.0.0",
   "description": "A lightweight, comprehensive TypeScript library for validating International Bank Account Numbers (IBANs) with detailed error reporting.",
   "main": "dist/index.js",
